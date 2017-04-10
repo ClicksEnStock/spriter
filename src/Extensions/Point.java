@@ -111,8 +111,14 @@ public class Point {
 			float cos = Calculator.cosDeg(degrees);
 			float sin = Calculator.sinDeg(degrees);
 			
-			float xx = x*cos-y*sin;
-			float yy = x*sin+y*cos;
+			//float xx = x*cos-y*sin;
+			//float yy = x*sin+y*cos;
+			/*
+			// Left Handed rotation in CF2.5 (Direct3D convention)
+			p'x = p.x * c + p.y * s;
+			p'y = -p.x * s + p.y * c;*/
+			float xx = x*cos+y*sin;
+			float yy = -x*sin+y*cos;
 			
 			this.x = xx;
 			this.y = yy;

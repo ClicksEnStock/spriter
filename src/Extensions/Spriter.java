@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import Runtime.MMFRuntime;
 
 /**
  * A utility class for managing multiple {@link Loader} and {@link Player} instances.
@@ -263,5 +264,24 @@ public class Spriter {
 		
 		initialized = false;
 	}
+	
+	/**
+	 * Build the file name from the given file path to handle case where file is saved in Application Data.
+	 * @param cFile the file path
+	 */
+	private String makeFile(String cFile) {
+    	String filename = null;
+    	if(cFile.length() > 0) {
+    		if(!cFile.contains("/") && !cFile.contains("\\"))
+			{
+    			filename = MMFRuntime.inst.getFilesDir ().toString ()+"/"+cFile;
+			}
+    		else
+			{
+    			filename = cFile;
+			}
+    	}
+    	return filename;
+    }
 
 }

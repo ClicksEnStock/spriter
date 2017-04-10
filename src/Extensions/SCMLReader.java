@@ -43,7 +43,14 @@ public class SCMLReader {
 	 */
 	protected Data load(String xml){
 		XmlReader reader = new XmlReader();
-		return load(reader.parse(xml));
+		Element root = reader.parse(xml);
+		ArrayList<Element> folders = root.getChildrenByName("folder");
+		ArrayList<Element> entities = root.getChildrenByName("entity");
+		data = new Data(root.get("scml_version"), root.get("generator"),root.get("generator_version"),
+				folders.size(),	entities.size());
+		loadFolders(folders);
+		loadEntities(entities);
+		return data;
 	}
 	
 	/**
@@ -52,31 +59,21 @@ public class SCMLReader {
 	 * @return the built data
 	 */
 	protected Data load(InputStream stream){
+		XmlReader reader = new XmlReader();
 		try {
-			XmlReader reader = new XmlReader();
-			return load(reader.parse(stream));
+			Element root = reader.parse(stream);
+			ArrayList<Element> folders = root.getChildrenByName("folder");
+			ArrayList<Element> entities = root.getChildrenByName("entity");
+			data = new Data(root.get("scml_version"), root.get("generator"),root.get("generator_version"),
+					folders.size(),	entities.size());
+			loadFolders(folders);
+			loadEntities(entities);
 		} catch (IOException e) {
 			e.printStackTrace();
-			return null;
 		}
-	}
-
-	/**
-	 * Reads the data from the given root element, i.e. the spriter_data node.
-	 * @param root
-	 * @return
-	 */
-	protected Data load(Element root) {
-		ArrayList<Element> folders = root.getChildrenByName("folder");
-		ArrayList<Element> entities = root.getChildrenByName("entity");
-		data = new Data(root.get("scml_version"), root.get("generator"), root.get("generator_version"),
-						Data.PixelMode.get(root.getInt("pixel_mode", 0)),
-						folders.size(),	entities.size());
-		loadFolders(folders);
-		loadEntities(entities);
 		return data;
 	}
-
+	
 	/**
 	 * Iterates through the given folders and adds them to the current {@link Data} object.
 	 * @param folders a list of folders to load
@@ -101,7 +98,7 @@ public class SCMLReader {
 			Element f = files.get(j);
 			File file = new File(f.getInt("id"), f.get("name"),
 					new Dimension(f.getInt("width", 0), f.getInt("height", 0)),
-					new Point(f.getFloat("pivot_x", 0f), f.getFloat("pivot_y", 1f)));
+					new Point(f.getFloat("pivot_x", 0f), 1.0f*f.getFloat("pivot_y", 1f)));
 			
 			folder.addFile(file);
 		}
@@ -134,8 +131,8 @@ public class SCMLReader {
 	protected void loadObjectInfos(ArrayList<Element> infos, Entity entity){
 		for(int i = 0; i< infos.size(); i++){
 			Element info = infos.get(i);
-			ObjectInfo objInfo = new ObjectInfo(info.get("name","info"+i),
-									ObjectType.getObjectInfoFor(info.get("type","")),
+			Entity.ObjectInfo objInfo = new Entity.ObjectInfo(info.get("name","info"+i),
+									Entity.ObjectType.getObjectInfoFor(info.get("type","")),
 									new Dimension(info.getFloat("w", 0), info.getFloat("h", 0)));
 			entity.addInfo(objInfo);
 			Element frames = info.getChildByName("frames");
@@ -158,7 +155,7 @@ public class SCMLReader {
 	protected void loadCharacterMaps(ArrayList<Element> maps, Entity entity){
 		for(int i = 0; i< maps.size(); i++){
 			Element map = maps.get(i);
-			CharacterMap charMap = new CharacterMap(map.getInt("id"), map.getAttribute("name", "charMap"+i));
+			Entity.CharacterMap charMap = new Entity.CharacterMap(map.getInt("id"), map.getAttribute("name", "charMap"+i));
 			entity.addCharacterMap(charMap);
 			ArrayList<Element> mappings = map.getChildrenByName("map");
 			for (int i1 = 0; i1 < mappings.size(); i1++) {
@@ -270,9 +267,9 @@ public class SCMLReader {
 			Element obj = k.getChildByName("bone");
 			if(obj == null) obj = k.getChildByName("object");
 			
-			Point position = new Point(obj.getFloat("x", 0f), obj.getFloat("y", 0f));
+			Point position = new Point(obj.getFloat("x", 0f), -1.0f*obj.getFloat("y", 0f));
 			Point scale = new Point(obj.getFloat("scale_x", 1f), obj.getFloat("scale_y", 1f));
-			Point pivot = new Point(obj.getFloat("pivot_x", 0f), obj.getFloat("pivot_y", (timeline.objectInfo.type == ObjectType.Bone)? .5f:1f));
+			Point pivot = new Point(obj.getFloat("pivot_x", 0f), 1.0f-obj.getFloat("pivot_y", (timeline.objectInfo.type == ObjectType.Bone)? .5f:1f));
 			float angle = obj.getFloat("angle", 0f), alpha = 1f;
 			int folder = -1, file = -1;
 			if(obj.getName().equals("object")){
@@ -281,7 +278,7 @@ public class SCMLReader {
 					folder = obj.getInt("folder", -1);
 					file = obj.getInt("file", -1);
 					File f = data.getFolder(folder).getFile(file);
-					pivot = new Point(obj.getFloat("pivot_x", f.pivot.x), obj.getFloat("pivot_y", f.pivot.y));
+					pivot = new Point(obj.getFloat("pivot_x", f.pivot.x), 1.0f-obj.getFloat("pivot_y", f.pivot.y));
 					timeline.objectInfo.size.set(f.size);
 				}
 			}
@@ -290,6 +287,26 @@ public class SCMLReader {
 			else object = new Timeline.Key.Object(position, scale, pivot, angle, alpha, new FileReference(folder, file));
 			key.setObject(object);
 			timeline.addKey(key);
+		}
+	}
+	
+	/**
+	 * Iterates through the given timelines and adds them to the given {@link Animation} object.
+	 * @param eventlines a list of eventlines
+	 * @param animation the animation containing the eventlines
+	 * @param entity entity for assigning the eventline an object info
+	 */
+	protected void loadEventlines(ArrayList<Element> eventlines, Animation animation, Entity entity){
+		for(int i = 0; i< eventlines.size(); i++){
+			Element t = eventlines.get(i);
+			ArrayList<Element> keys = eventlines.get(i).getChildrenByName("key");
+			String name = t.get("name");
+			ObjectType type = ObjectType.getObjectInfoFor(t.get("object_type", "trigger"));
+			ObjectInfo info = entity.getInfo(name);
+			if(info == null) info = new ObjectInfo(name, type, new Dimension(0,0));
+			Timeline timeline = new Timeline(t.getInt("id"), name, info, keys.size());
+			animation.addTimeline(timeline);
+			loadTimelineKeys(keys, timeline);
 		}
 	}
 	

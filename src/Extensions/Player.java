@@ -47,6 +47,7 @@ public class Player {
 	private ObjectIterator objectIterator;
 	private Mainline.Key currentKey, prevKey;
 	public boolean copyObjects = true;
+	public boolean curAnimFinished = false;
 	
 	/**
 	 * Creates a {@link Player} instance with the given entity.
@@ -99,6 +100,19 @@ public class Player {
 		this.increaseTime();
 	}
 	
+	public boolean IsCurrentAnimationFinished()
+	{
+		if(curAnimFinished)
+		{
+			curAnimFinished = false;
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
+	
 	private void copyObjects(){
 		for(int i = 0; i < animation.tweenedKeys.length; i++){
 			this.tweenedKeys[i].active = animation.tweenedKeys[i].active;
@@ -114,11 +128,13 @@ public class Player {
 			time = time-animation.length;
 			for (int i = 0; i < listeners.size(); i++) {
 				listeners.get(i).animationFinished(animation);
+				curAnimFinished = true;
 			}
 		}
 		if(time < 0){
 			for (int i = 0; i < listeners.size(); i++) {
 				listeners.get(i).animationFinished(animation);
+				curAnimFinished = true;
 			}
 			time += animation.length;
 		}
@@ -979,17 +995,17 @@ public class Player {
 	 */
 	class ObjectIterator implements Iterator<Object>{
 		int index = 0;
-		
+		@Override
 		public boolean hasNext() {
 			return index < getCurrentKey().objectRefs.length;
 		}
 
-		
+		@Override
 		public Object next() {
 			return unmappedTweenedKeys[getCurrentKey().objectRefs[index++].timeline].object();
 		}
 
-		
+		@Override
 		public void remove() {
 			throw new SpriterException("remove() is not supported by this iterator!");
 		}
@@ -1003,15 +1019,17 @@ public class Player {
 	 */
 	class BoneIterator implements Iterator<Bone>{
 		int index = 0;
-		
+		@Override
 		public boolean hasNext() {
 			return index < getCurrentKey().boneRefs.length;
 		}
 
+		@Override
 		public Bone next() {
 			return unmappedTweenedKeys[getCurrentKey().boneRefs[index++].timeline].object();
 		}
 
+		@Override
 		public void remove() {
 			throw new SpriterException("remove() is not supported by this iterator!");
 		}

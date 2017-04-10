@@ -6,7 +6,7 @@ import java.util.HashMap;
  * A loader is responsible for loading all resources.
  * Since this library is meant to be as generic as possible, it cannot be assumed how to load a resource. Because of this this class has to be abstract.
  * This class takes care of loading all resources a {@link Data} instance contains.
- * To load all resources an instance relies on {@link #loadResource(FileReference)} which has to implemented with the backend specific methods.
+ * To load all resources an instance relies on {@link #loadResource(FileReference)} which has to be implemented with the backend specific methods.
  * 
  * @author Trixt0r
  *

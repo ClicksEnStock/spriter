@@ -1,7 +1,6 @@
 package com.brashmonkey.spriter;
 
 import java.util.Iterator;
-
 import com.brashmonkey.spriter.Entity.CharacterMap;
 import com.brashmonkey.spriter.Entity.ObjectInfo;
 import com.brashmonkey.spriter.Entity.ObjectType;

@@ -23,9 +23,9 @@ public class Animation {
     public final int id, length;
     public final String name;
     public final boolean looping;
-	Key currentKey;
-	Timeline.Key[] tweenedKeys, unmappedTweenedKeys;
-	private boolean prepared;
+		Key currentKey;
+		Timeline.Key[] tweenedKeys, unmappedTweenedKeys;
+		private boolean prepared;
     
     public Animation(Mainline mainline, int id, String name, int length, boolean looping, int timelines){
     	this.mainline = mainline;
@@ -47,6 +47,14 @@ public class Animation {
      */
     public Timeline getTimeline(int index){
     	return this.timelines[index];
+    }
+	
+	/**
+     * Returns the current {@link Key}.
+     * @return the current key
+     */
+    public Key getCurrentKey(){
+    	return this.currentKey;
     }
     
     /**

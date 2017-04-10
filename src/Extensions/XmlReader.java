@@ -499,7 +499,7 @@ public class XmlReader {
 					buffer.append(' ');
 					buffer.append(entry.getKey());
 					buffer.append("=\"");
-					buffer.append(entry.getKey());
+					buffer.append(entry.getValue());
 					buffer.append('\"');
 				}
 			}
