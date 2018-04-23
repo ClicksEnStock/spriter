@@ -1,5 +1,5 @@
 # spriterJavaCF2.5
-a C++ Implementation for Spriter animations in Clickteam Fusion 2.5
+a Java Implementation for Spriter animations in Clickteam Fusion 2.5 to target Android platform
 
 ## About
 spriterJavaCF2.5 is based on the original template provided by Trixt0r:
